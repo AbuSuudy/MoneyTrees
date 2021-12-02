@@ -1,0 +1,38 @@
+﻿@model MoneyTrees.RouteConfig
+
+@{
+    ViewBag.Title = "Monzo";
+}
+
+    <head>
+
+
+    </head>
+    <body>
+       
+        <div id="ContetntContainer" style="padding-top:40px; max-width:800px;max-width: 800px;margin: auto; width: 50%;padding-top: 50px;">
+
+            <div style="padding-bottom:20px">
+
+                <h2>Monzo Authentication</h2>
+
+            </div>
+
+
+            <div>
+
+                <dl class="dl-horizontal">
+                    <div class="center">
+
+                        <button type="button" class="btn btn-primary btn-lg btn-block"
+                                onclick="location.href=@string.Format("'https://auth.monzo.com/?client_id={0}&redirect_uri={1}&response_type=code&state=$state_token'",System.Configuration.ConfigurationManager.AppSettings["client_id"], System.Configuration.ConfigurationManager.AppSettings["redirect_uri"] )">
+                            Sign in
+                        </button>
+
+                    </div>
+
+                </dl>
+            </div>
+
+        </div>
+    </body>

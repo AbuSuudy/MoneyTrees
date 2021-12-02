@@ -1,0 +1,169 @@
+﻿
+<body>
+
+    <div class="col-lg-12" style="padding-top:40px">
+        <div id="map" style="height:525px;"></div>
+    </div>
+
+    <h1 class="display-4 text-center my-5"> Hi @Model.AccountHolderName, here is a list of all your transactions on Monzo. </h1>
+    <div style="padding-bottom:40px">
+        <div class="row">
+            <div class="col-md-6">
+                <h2><small>Balance:</small></h2>
+                <div class="card card-lg" style="background-color:#ececef">
+                    <span class="display-4 text-center my-4">@Html.FormatValue(Model.Balance, "{0:C2}")</span>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <h2><small>Spent Today:</small></h2>
+                <div class="card card-lg" style="background-color:#ececef">
+                    <span class="display-4 text-center my-4">@Html.FormatValue(Model.SpendToday, "{0:C2}")</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table id="transactionTable" class="table table-hover">
+        <thead>
+            <tr>
+                <th>Logo</th>
+                <th>Name</th>
+                <th>Date</th>
+                <th>Counterpart</th>
+                <th>Emoji</th>
+                <th>Payment</th>
+                <th>Category</th>
+            </tr>
+        </thead>
+    </table>
+</body>
+
+
+@*Semantic UI*@
+<link href="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.6/semantic.min.css" rel="stylesheet" />
+<link href="https://cdn.datatables.net/1.10.15/css/dataTables.semanticui.min.css" rel="stylesheet" />
+
+
+
+
+@section scripts{
+
+
+    @* Normal *@
+    <script src="//cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+
+    @* Semantic UI*@
+    <script src="https://cdn.datatables.net/1.10.15/js/dataTables.semanticui.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.6/semantic.min.js"></script>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
+    <script src="https://cdn.datatables.net/plug-ins/1.10.15/sorting/datetime-moment.js"></script>
+
+
+    <script async
+            src=@string.Format("https://maps.googleapis.com/maps/api/js?key={0}&callback=initMap", System.Configuration.ConfigurationManager.AppSettings["Google_Map_Key"])>
+    </script>
+
+   
+    <script>
+
+
+        // Adds a marker to the map.
+        function AddMarker(latitude, longitude, name) {
+            // Add the marker at the clicked location, and add the next-available label
+            // from the array of alphabetical characters.
+            var marker = new google.maps.Marker({
+                position: { lat: latitude, lng: longitude },
+                animation: google.maps.Animation.DROP,
+                title: name,
+                map: map
+            });
+        }
+
+        let map;
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: 51.454, lng: -2.526 },
+                zoom: 8
+            });
+        }
+
+
+
+
+        $(document).ready(function () {
+
+            $.fn.dataTable.moment('DD/MM/YYYY HH:mm:ss');
+
+            $("#transactionTable").DataTable(
+                {
+
+                    "ajax": {
+                        "url": "/Monzo/GetTransactions",
+                        "type": "GET",
+                        "datatype": "json"
+                    },
+                    "columns": [
+                        {
+                            "data": "Logo",
+                            render: function (data) {
+
+                                if (data === "" || data === null) {
+                                    return '<img class="img-responsive" src="/Content/NoImage.png" height="64px" width="64px">';
+                                }
+                                else {
+
+                                    return '<img class="img-responsive" src="' + data + '" height="64px" width="64px">';
+                                }
+                            }
+                        },
+                        { "data": "Name" },
+                        {
+                            "data": "Created",
+                            render: function (d) {
+                                return moment(d).format("DD/MM/YYYY HH:mm:ss");
+                            }
+                        },
+                        { "data": "CounterPartName" },
+                        {
+                            "data": "Emoji",
+                            render: function (data) {
+
+                                if (data === "" || data === null) {
+                                    return '🤔❓';
+                                } else {
+                                    return data;
+                                }
+                            }
+                        },
+                        { "data": "LocalAmount" },
+                        { "data": "Category" }
+
+                    ],
+                    "order": [[2, 'desc']]
+
+                });
+
+        });
+
+    </script>
+
+    @if (Model.TransactionLocation != null)
+    {
+
+        foreach (var transaction in Model.TransactionLocation)
+        {
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    AddMarker(@transaction.Latitude, @transaction.Longitude, "@transaction.Name");
+                });
+
+            </script>
+
+        }
+    }
+
+}
